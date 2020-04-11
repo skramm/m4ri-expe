@@ -13,7 +13,7 @@
 
 MatM4ri convertToM4ri( const BinaryMatrix& mat_in )
 {
-	MatM4ri out( mat_in.nbLines(), mat_in.nbCols() );
+	MatM4ri out( mat_in.nbRows(), mat_in.nbCols() );
 	size_t row = 0;
 	for( const auto& line: mat_in )
 	{

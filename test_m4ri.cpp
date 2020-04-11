@@ -11,7 +11,7 @@
 //-------------------------------------------------------------------
 int main(int, char*[])
 {
-	MatM4ri m(5,10);
+	MatM4ri m(10,20);
 	m.randomize();
 	MatM4ri m2(m);
 	std::cout << m;

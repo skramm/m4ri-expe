@@ -117,16 +117,29 @@ operator << ( std::ostream& f, const MatM4ri& mat )
 	f << "MatM4ri: " << mat.nbRows() << " rows x " << mat.nbCols() << " cols\n      ";
 
 	for( size_t col=0; col<mat.nbCols(); col++ )
-		f << (col+1)%10 << " ";
+	{
+		f << (col)%10;
+		if( !((col+1)%4) )
+			f << ' ';
+	}
 	f << "\n    -";
 	for( size_t col=0; col<mat.nbCols(); col++ )
-		f << "--"	;
+	{
+		f << "-"	;
+		if( !((col+1)%4) )
+			f << '-';
+	}
 	f << "\n";
 	for( size_t row=0; row<mat.nbRows(); row++ )
 	{
 		f << std::setw(3) << row+1 << " | ";
+
 		for( size_t col=0; col<mat.nbCols(); col++ )
-			f <<  mzd_read_bit( mat._data, row, col ) << " ";
+		{
+			f <<  mzd_read_bit( mat._data, row, col );
+			if( !((col+1)%4) && col != mat.nbCols()-1 )
+				f << '.';
+		}
 		f << '\n';
 	}
 	return f;

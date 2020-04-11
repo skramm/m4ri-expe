@@ -2,28 +2,18 @@
 \file
 \brief holds class BinaryMatrix that models a matrix in GF(2)
 */
+
 #ifndef HG_BINARY_MATRIX_HPP
 #define HG_BINARY_MATRIX_HPP
 
 #include <boost/dynamic_bitset.hpp>
 
+//#define COUT std::cout
+#define COUT if(0) std::cout
 
-#define COUT std::cout
-
-/// Holds a path as a binary vector
+/// Binary vector
 /**
 Based on https://www.boost.org/doc/libs/release/libs/dynamic_bitset/dynamic_bitset.html
-
-For a graph of \f$n\f$ vertices, its size needs to be \f$ n.(n-1)/2 \f$
-
-Example: for the path 1-3-4 on a graph of 5 vertices (0 - 4), the vector will have a size of 10 elements:
-
-\verbatim
-edge:    0  0  0  0  1  1  1  2  2  3
-         1  2  3  4  2  3  4  3  4  4
---------------------------------------
-vector:  0  0  0  0  0  1  1  0  0  1
-\endverbatim
 */
 typedef boost::dynamic_bitset<> BinaryVec;
 
@@ -75,10 +65,10 @@ struct BinaryMatrix
 	BinaryMatrix()
 	{}
 
-	size_t nbLines() const { return _data.size(); }
+	size_t nbRows() const { return _data.size(); }
 	size_t nbCols()  const
 	{
-		if( 0==nbLines() )
+		if( 0==nbRows() )
 			return 0;
 		return _data.at(0).size();
 	}
@@ -95,7 +85,7 @@ struct BinaryMatrix
 
 	void addCol( const BinaryVec& vin )
 	{
-        assert( vin.size() == nbLines() );
+        assert( vin.size() == nbRows() );
         for( size_t i=0; i<vin.size(); i++ )
 			_data[i].push_back( vin[i] );
 	}
@@ -103,26 +93,26 @@ struct BinaryMatrix
 	BinaryVec getCol( size_t col ) const
 	{
 		assert( col<nbCols() );
-		BinaryVec out( nbLines() );
-		for( size_t i=0; i<nbLines(); i++ )
+		BinaryVec out( nbRows() );
+		for( size_t i=0; i<nbRows(); i++ )
 			out[i] = line(i)[col];
 		return out;
 	}
 
 	const BinaryVec& line( size_t idx ) const
 	{
-		assert( idx<nbLines() );
+		assert( idx<nbRows() );
 		return _data[idx];
 	}
 	BinaryVec& line( size_t idx )
 	{
-		assert( idx<nbLines() );
+		assert( idx<nbRows() );
 		return _data[idx];
 	}
     BinaryMatInfo getInfo() const
     {
 		BinaryMatInfo info;
-		info.nbLines = nbLines();
+		info.nbLines = nbRows();
 		assert( _data.size() );
 		info.nbCols = nbCols();
 		std::for_each( _data.begin(), _data.end(), [&info](const BinaryVec& v){ info.nbOnes+= v.count();} ); // count 1
@@ -130,7 +120,7 @@ struct BinaryMatrix
 		for( size_t i=0; i<nbCols(); i++ )
 		{
 			bool foundOne=false;
-			for( size_t j=0; j<nbLines(); j++ )
+			for( size_t j=0; j<nbRows(); j++ )
 			{
 				if( _data[j][i] == 1 )
 				{
@@ -150,7 +140,7 @@ struct BinaryMatrix
 		for( size_t col=0; col<nbCols(); col++ )
 		{
 			bool foundOne=false;
-			for( size_t row=0; row<nbLines(); row++ )
+			for( size_t row=0; row<nbRows(); row++ )
 			{
 				if( _data[row][col] == 1 )
 				{
@@ -167,10 +157,10 @@ struct BinaryMatrix
 	void print( std::ostream& f, std::string msg=std::string() ) const
 	{
 		size_t i=0;
-		f << "BinaryMatrix: " << msg << ", nbLines=" << nbLines() << " nbCols=" << nbCols() << "\n";
+		f << "BinaryMatrix: " << msg << ", nbLines=" << nbRows() << " nbCols=" << nbCols() << "\n";
 		for( auto line: *this )
 		{
-			f << std::setw(4) << i++ << ": | ";
+			f << std::setw(4) << i++ << " | ";
 
 			for( size_t i=0; i<line.size(); i++ )
 			{
@@ -189,7 +179,7 @@ struct BinaryMatrix
 		for( size_t col=0; col<nbCols(); col++ )
 		{
 			size_t n=0;
-			for( size_t row=0; row<nbLines(); row++ )
+			for( size_t row=0; row<nbRows(); row++ )
 			{
 				if( _data[row][col] == 1 )
 					n++;
@@ -200,20 +190,21 @@ struct BinaryMatrix
 	}
 };
 //-------------------------------------------------------------------------------------------
-/// Gaussian binary elimination
+/// A naive Gaussian binary elimination
 /**
+Probably some failure in here...
+
 - Input: a binary matrix
 - Output: a reduced matrix
 
 Assumes no identical rows
 */
-//template<typename vertex_t> // TEMP
 inline
 BinaryMatrix
-gaussianElim( BinaryMatrix& m_in, size_t& nbIter ) // /* TEMP */, size_t nbVertices, const std::vector<size_t>& nec )
+gaussianElim( BinaryMatrix& m_in, size_t& nbIter )
 {
 	size_t col = 0;
-	size_t nb_rows = m_in.nbLines();
+	size_t nb_rows = m_in.nbRows();
 	size_t nb_cols = m_in.nbCols();
 	assert( nb_rows > 1 );
 
@@ -221,11 +212,6 @@ gaussianElim( BinaryMatrix& m_in, size_t& nbIter ) // /* TEMP */, size_t nbVerti
 
 	nbIter = 0;
 	bool done = false;
-
-//	m_in.print( std::cout, "m_in INITIAL" );
-
-// TEMP
-//	auto rev_map = buildReverseBinaryMap( nbVertices );
 
 	std::vector<bool> tag(nb_rows,false);
 	do
@@ -242,10 +228,10 @@ gaussianElim( BinaryMatrix& m_in, size_t& nbIter ) // /* TEMP */, size_t nbVerti
 				COUT << "row: " << row << ": found 1 in col " << col << "\n"; // found pivot
 //				printBitVector( std::cout, m_out.line(row) );
 				m_out.addLine( m_in.line(row) );
-				COUT << "Adding line " << row << " to OUTMAT at line " << m_out.nbLines()-1 << '\n';
+				COUT << "Adding line " << row << " to OUTMAT at line " << m_out.nbRows()-1 << '\n';
 
 //				printBitVector( std::cout, m_in.line(row) );
-//				printBitVector( std::cout, m_out.line(m_out.nbLines()-1) );
+//				printBitVector( std::cout, m_out.line(m_out.nbRows()-1) );
 				tag[row] = true;
 				if( row < nb_rows-1 )
 				{
@@ -283,12 +269,6 @@ gaussianElim( BinaryMatrix& m_in, size_t& nbIter ) // /* TEMP */, size_t nbVerti
 			COUT << "All lines tagged, end\n";
 			done = true;
 		}
-#if 0
-	COUT << "-m_in: " << m_in.nbLines() << "x" << m_in.nbCols() << '\n';
-		m_in.print( std::cout,  "m_in" );
-	COUT << "-m_out: " << m_out.nbLines() << "x" << m_out.nbCols() << '\n';
-		m_out.print( std::cout, "m_out" );
-#endif
 	}
 	while( !done );
 	return m_out;
