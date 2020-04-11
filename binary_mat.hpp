@@ -1,5 +1,14 @@
+/**
+\file
+\brief holds class BinaryMatrix that models a matrix in GF(2)
+*/
+#ifndef HG_BINARY_MATRIX_HPP
+#define HG_BINARY_MATRIX_HPP
 
 #include <boost/dynamic_bitset.hpp>
+
+
+#define COUT std::cout
 
 /// Holds a path as a binary vector
 /**
@@ -20,6 +29,7 @@ typedef boost::dynamic_bitset<> BinaryVec;
 
 
 //-------------------------------------------------------------------------------------------
+/// Details on BinaryMatrix
 struct BinaryMatInfo
 {
     size_t nbLines  = 0;
@@ -189,3 +199,100 @@ struct BinaryMatrix
 		return out;
 	}
 };
+//-------------------------------------------------------------------------------------------
+/// Gaussian binary elimination
+/**
+- Input: a binary matrix
+- Output: a reduced matrix
+
+Assumes no identical rows
+*/
+//template<typename vertex_t> // TEMP
+inline
+BinaryMatrix
+gaussianElim( BinaryMatrix& m_in, size_t& nbIter ) // /* TEMP */, size_t nbVertices, const std::vector<size_t>& nec )
+{
+	size_t col = 0;
+	size_t nb_rows = m_in.nbLines();
+	size_t nb_cols = m_in.nbCols();
+	assert( nb_rows > 1 );
+
+	BinaryMatrix m_out;
+
+	nbIter = 0;
+	bool done = false;
+
+//	m_in.print( std::cout, "m_in INITIAL" );
+
+// TEMP
+//	auto rev_map = buildReverseBinaryMap( nbVertices );
+
+	std::vector<bool> tag(nb_rows,false);
+	do
+	{
+		++nbIter;
+		COUT << "\n* start iter " << nbIter << ", current col=" << col
+			<< " #tagged lines = " << std::count( tag.begin(),tag.end(), true ) << "\n";
+
+		for( size_t row=0; row<nb_rows; row++ )                // search for first row with a 1 in current column
+		{
+//			COUT << "considering line " << row << "\n";
+			if( tag[row] == false && m_in.line(row)[col] == 1 )    // AND not tagged
+			{
+				COUT << "row: " << row << ": found 1 in col " << col << "\n"; // found pivot
+//				printBitVector( std::cout, m_out.line(row) );
+				m_out.addLine( m_in.line(row) );
+				COUT << "Adding line " << row << " to OUTMAT at line " << m_out.nbLines()-1 << '\n';
+
+//				printBitVector( std::cout, m_in.line(row) );
+//				printBitVector( std::cout, m_out.line(m_out.nbLines()-1) );
+				tag[row] = true;
+				if( row < nb_rows-1 )
+				{
+//					for( size_t i=0; i<nb_rows; i++ )      // search for all following rows that have a 1 in that column
+//						if( i != row )
+					for( size_t i=row+1; i<nb_rows; i++ )      // search for all following rows that have a 1 in that column
+					{
+						if( tag[i] == false )                  // AND that are not tagged.
+							if( m_in.line(i)[col] == 1 )            // it there is, we XOR them with initial line
+							{
+//								std::cout << " -row " << i << " changes:\nwas: "; printBitVector( std::cout, m_in.line(i) );
+								m_in.line(i) = m_in.line(i) ^ m_in.line(row);
+//								std::cout << "now: "; printBitVector( std::cout, m_in.line(i) );
+#if 0
+								auto v_pvertex = buildPairSetFromBinaryVec_v2<vertex_t>( m_in.line(i), rev_map, nec );
+								if( false == checkVertexPairSet( v_pvertex, false ) )
+									COUT << "Invalid vector!\n";
+#endif
+							}
+					}
+				}
+				COUT << "BREAK loop\n";
+				break;
+			}
+		}
+		COUT << "switch to next col\n";
+		col++;
+		if( col == nb_cols )
+		{
+			COUT << "All columns done, end\n";
+			done = true;
+		}
+		if( std::find(tag.begin(),tag.end(), false ) == tag.end() )
+		{
+			COUT << "All lines tagged, end\n";
+			done = true;
+		}
+#if 0
+	COUT << "-m_in: " << m_in.nbLines() << "x" << m_in.nbCols() << '\n';
+		m_in.print( std::cout,  "m_in" );
+	COUT << "-m_out: " << m_out.nbLines() << "x" << m_out.nbCols() << '\n';
+		m_out.print( std::cout, "m_out" );
+#endif
+	}
+	while( !done );
+	return m_out;
+}
+//-------------------------------------------------------------------------------------------
+
+#endif // HG_BINARY_MATRIX_HPP

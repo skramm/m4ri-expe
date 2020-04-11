@@ -5,10 +5,11 @@
 */
 
 #include <iostream>
-#include "udgcd.hpp"
-#include "wrapper_m4ri.hpp"
 
-using namespace udgcd;
+#include "wrapper_m4ri.hpp"
+#include "binary_mat.hpp"
+#include "convert.hpp"
+
 
 //-------------------------------------------------------------------
 int main( int argc, char** argv )
@@ -25,10 +26,10 @@ int main( int argc, char** argv )
 	m.randomize();
 	std::cout << " start:\n" << m;
 
-	priv::BinaryMatrix bmat1 = convertFromM4ri( m );
+	BinaryMatrix bmat1 = convertFromM4ri( m );
 	size_t iter=0;
 //	bmat1.print( std::cout, "bmat1" );
-	auto bmat2 = priv::gaussianElim( bmat1, iter );
+	auto bmat2 = gaussianElim( bmat1, iter );
 	bmat2.print( std::cout, "gaussianElim" );
 	MatM4ri mine = convertToM4ri( bmat2 );
 

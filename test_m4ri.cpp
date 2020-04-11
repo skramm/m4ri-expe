@@ -1,4 +1,3 @@
-
 /**
 \file
 \brief test of m4ri
@@ -6,14 +5,12 @@
 
 #include <iostream>
 #include "wrapper_m4ri.hpp"
-
-using namespace udgcd;
+#include "binary_mat.hpp"
+#include "convert.hpp"
 
 //-------------------------------------------------------------------
 int main(int, char*[])
 {
-//	SHOW_INFO;
-
 	MatM4ri m(5,10);
 	m.randomize();
 	MatM4ri m2(m);
@@ -28,10 +25,10 @@ int main(int, char*[])
 	mzd_echelonize_naive( m._data, 1 );
 	std::cout << m;
 
-	priv::BinaryMatrix bmat1 = convertFromM4ri( m2 );
+	BinaryMatrix bmat1 = convertFromM4ri( m2 );
 	size_t iter=0;
 	bmat1.print( std::cout, "bmat1" );
-	auto bmat2 = priv::gaussianElim( bmat1, iter );
+	auto bmat2 = gaussianElim( bmat1, iter );
 	bmat2.print( std::cout, "bmat2" );
 
 	MatM4ri m3 = convertToM4ri( bmat2 );
