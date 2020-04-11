@@ -1,2 +1,4 @@
 # m4ri-expe
-Experiments, extensions to m4ri
+Experiments and extensions to the m4ri library
+
+https://bitbucket.org/malb/m4ri
